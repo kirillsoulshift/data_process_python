@@ -76,7 +76,6 @@ def is_unencodable(df):
     проверка некодируемых символов в
     колонках заголовков и описания на
     английском
-
     """
 
     df.reset_index(drop=True, inplace=True)
@@ -87,7 +86,7 @@ def is_unencodable(df):
             result_col = col
 
     description = df[result_col]  # series
-    ser = headers.append(description)
+    ser = pd.concat([headers, description])
     ser.dropna(inplace=True)
     ser = set(''.join(ser.tolist()))
     control = []
@@ -105,31 +104,22 @@ def is_unencodable(df):
 def clean_str(el, xlsx_name: bool):
     """
     заменить недопустимые для наименования папок символы
-    заменить \n на пробел
-
     :param el: str
     :param xlsx_name: является ли строка именем эксель файла
     :return: str
     """
-
-    if re.search(r'\n', el):
-        el = re.sub(r'\n', ' ', el)
-
-    if re.search(r'[:*?«<>|+=\[\];.]', el):
-        el = re.sub(r'[:*?«<>|+=\[\];.]', '', el)
-
-    if re.search(r'[\\/]', el):
-        el = re.sub(r'[\\/]+', ', ', el)
-    if el.count('"') != 0:
-        el = el.replace('"', '\'\'')
-
-    if re.search(r'\s{2,}', el):
-        el = re.sub(r'\s{2,}', ' ', el)
-
+    # if re.search(r'[:*?]', el):
+    #     el = re.sub(r'[:*?]', '', el)
+    # if re.search(r'[\\/|]', el):
+    #     el = re.sub(r'[\\/|]', '%', el)
+    # if el.count('"') != 0:
+    #     el = el.replace('"', '\'\'')
+    # if re.search(r'\s{2,}', el):
+    #     el = re.sub(r'\s{2,}', ' ', el)
     if xlsx_name:
         return el[0:3]  # далее название .xlsx файла не используется и может быть любым
     else:
-        return el
+        return el[0:10].strip() # наименование кратко записывается в название папки
 
 
 def get_partnum(partnum):
@@ -205,8 +195,9 @@ for row_num, header in enumerate(headers_n_refs):
                           " " + clean_str(headers[-2], xlsx_name=False)
             name = clean_str(headers[-2], xlsx_name=True)
             os.mkdir(os.path.join(dest_path, folder_name))
-
             df_to_write.to_excel(os.path.join(dest_path, folder_name, name+'.xlsx'), index=False)
+            with open(os.path.join(dest_path, folder_name, 'name.txt'), 'w') as f:
+                f.write(headers[-2])  # полное наименование страницы записывается в текстовый файл в папке
 
 folder_count += 1
 start = numbers[-1] + 1
@@ -218,7 +209,7 @@ folder_name = make_folder_num(folder_count) + \
               " " + clean_str(headers[-1], xlsx_name=False)
 name = clean_str(headers[-1], xlsx_name=True)
 os.mkdir(os.path.join(dest_path, folder_name))
-
 df_to_write.to_excel(os.path.join(dest_path, folder_name, name+'.xlsx'), index=False)
-
+with open(os.path.join(dest_path, folder_name, 'name.txt'), 'w') as f:
+    f.write(headers[-1])  # полное наименование страницы записывается в текстовый файл в папке
 print("--- %s seconds ---" % (time.time() - start_time))

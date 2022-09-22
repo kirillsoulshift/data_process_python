@@ -7,15 +7,17 @@ import sys
 import shutil
 import pandas as pd
 
-#todo разметка картинок в ОКР по шаблону приводит к однообразию разрешений картинок (problem?)
-#todo картинки извлекаются в ориентации пдф файла(книжная или альбомная) (problem?) (установка нужной ориентации в hotpoint)
 
+#todo проверка наличия дублей изображений. удаление дублей
 """
 если не выделяет цельные изображения:
 pdf => OCR => разметить области изображений и заголовков => сохранить как pdf с возможностью поиска
 
 обрабатывает файл .pdf в папке, в которой находится скрипт
 помещает все изображения из файла .pdf в новую папку в директории скрипта
+
+- разметка картинок в ОКР по шаблону приводит к однообразию разрешений картинок (problem?)
+- картинки извлекаются в ориентации пдф файла(книжная или альбомная) (problem?) (установка нужной ориентации в hotpoint)
 
 если в директории скрипта лежит папка с каталогом (название папки = название pdf)
 (в форме множества папок)-
@@ -27,23 +29,15 @@ pdf => OCR => разметить области изображений и заг
 def get_catnum_or_name(s):
     tokens = s.split('\n')
     catnum = ''
-    name = ''
     for token in tokens:
-        if re.search(r'[\d\s-]{5,}', token):
-            m = re.search(r'[\d\s-]{5,}', token)
+        if re.search(r'[A-Z]?[\d-]{5,}[A-Z]?', token):
+            m = re.search(r'[A-Z]?[\d-]{5,}[A-Z]?', token)
             catnum = m.group(0).replace(' ', '')
             break
-        if re.search(r'[а-я]{4,}', token, flags=re.IGNORECASE):
-            name = token
-            break
-    if catnum and not name:
-        return catnum
-    elif name and not catnum:
-        return name
-    elif name and catnum:
+    if catnum:
         return catnum
     else:
-        return 'undefined'
+        return 'UNDEFINED'
 
 
 def make_num(num):
@@ -61,11 +55,9 @@ def make_num(num):
 
 def clean_str(el):
 
-    if re.search(r'[:*?«<>|+=\[\];."\n]+', el):
-        el = re.sub(r'[:*?«<>|+=\[\];."\n]+', '', el)
+    if re.search(r'[\\/:*?«<>|+=;."\n]+', el):
+        el = re.sub(r'[\\/:*?«<>|+=;."\n]+', '', el)
 
-    if re.search(r'[\\/]+', el):
-        el = re.sub(r'[\\/]+', ', ', el)
     return el
 
 
@@ -100,7 +92,7 @@ with fitz.open(filename) as my_pdf_file:
 
         # check if images are there
         if images:
-            print(f"{len(images)} изображений на стр {page_number}[+]")
+            print(f"{len(images)} изображений на стр {page_number}/{pdf_len}[+]", f'CAT_NUM = {header}')
         else:
             print(f"0 изображений на стр {page_number}[!]")
 
@@ -152,8 +144,8 @@ while type(border) != int:
         break
     except ValueError:
         print('Необходимо ввести число')
-
-most_common_dims = commons['dims'].value_counts()[lambda x: x > border].index.tolist()  # разрешения картинок pdf_len / 2
+print('Moving pictures...')
+most_common_dims = commons['dims'].value_counts()[lambda x: x > border].index.tolist()  # разрешения картинок
 
 # определение ненужных изображений
 files_to_delete = []
@@ -171,7 +163,7 @@ for file in files_to_delete:
     shutil.move(path, bad_image_folder)
 
 # перемещение нужных изображений
-# todo поиск папки с каталогом в форме !плоской! директории
+# поиск папки с каталогом в форме !плоской! директории
 cat_dir = []
 for file in filenames:
     if filename[:-4] == file and\

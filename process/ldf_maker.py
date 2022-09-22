@@ -56,6 +56,41 @@ _____________________________________________________________________________
 """
 
 
+def count_and_trim(el):
+    """
+    Обрезает строку наименования ldf файла (title)
+    т.к. ее длина не может превышать 128 Б
+    :param el: str
+    :return: str
+    """
+    letters = re.sub(r'[^А-Я]', '', el)
+    misc = re.sub(r'[А-Я]', '', el)
+    if len(letters) * 2 + len(misc) > 128:
+        if el.count('('):
+            return count_and_trim(el.rpartition('(')[0].strip())
+        elif el.count(' ') and not el.count('('):
+            return count_and_trim(el.rpartition(' ')[0].strip())
+        else:
+            return el[:len(el)//2].strip()
+    else:
+        return el.strip()
+
+
+def get_name(path):
+    """
+    поиск файла txt с названием в текущей папке
+    возврат текста отредактированного по длине названия страницы
+    :param: путь к текущей директории
+    :return: str
+    """
+    try:
+        with open(os.path.join(path, 'name.txt')) as f:
+            first_line = f.readline()
+        return count_and_trim(first_line)
+    except FileNotFoundError:
+        sys.exit(f'В пути {path} не обнаружен текстовый файл <name.txt> с названием страницы')
+
+
 def make_catnum(s):
     if s == 'NA':
         return ''
@@ -69,7 +104,7 @@ def entry(s):
     if re.search(r'\s{2,}', s):
         s = re.sub(r'\s{2,}', ' ', s)
     if s.count('"'):
-        s = s.replace('"', "'")
+        s = s.replace('"', "''")
     return '"' + s + '"'
 
 
@@ -217,7 +252,7 @@ def write_ldf(path, dest_path, content_dict):
     :return: None
     """
     ldf_name = path.split('\\')[-1].split(' ')[0]  # "0007 57711103 УСТАНОВКА ПЕРИЛ" ==> "0007"
-    page_name = ' '.join(path.split('\\')[-1].split(' ')[2:])  # "0007 57711103 УСТАНОВКА ПЕРИЛ" ==> "УСТАНОВКА ПЕРИЛ"
+    page_name = get_name(path)  # извлечение названия из файла txt из текущей папки
     if content_dict['files'] != 0:  # если ldf файл делается из .xlsx
         content = os.listdir(path)
         xlsx_list = []
@@ -313,7 +348,7 @@ def write_ldf(path, dest_path, content_dict):
                     ldf.write(folder.split(' ')[0].encode('cp1251'))  # в ldf прописывается ссылка
                     ldf.write(b',,\n')
                     ldf.write(b'FIELD,Translate,')
-                    ldf.write(entry(' '.join(folder.split(' ')[2:])).encode('cp1251'))
+                    ldf.write(entry(get_name(os.path.join(path, folder))).encode('cp1251'))
                     ldf.write(b'\n')
 
         else:  # если ldf файл делается из папки
@@ -324,7 +359,7 @@ def write_ldf(path, dest_path, content_dict):
                 ldf.write(b'ENTRY,,')
                 ldf.write(make_catnum(folder.split(' ')[1]).encode('cp1251'))
                 ldf.write(b',')
-                ldf.write(entry(' '.join(folder.split(' ')[2:])).encode('cp1251'))
+                ldf.write(entry(get_name(os.path.join(path, folder))).encode('cp1251'))
                 ldf.write(b',')
                 ldf.write(b'1')
                 ldf.write(b',,,')
