@@ -9,7 +9,7 @@ cd %USERPROFILE%\Desktop\Python38-32\PageRedactor
 Модификация LinkOneCrush (WARNING: this repo do not contain folders data and components)
 
 Обрабатывает книги LinkOne помещенные в папку to_process (находится в PageRedactor),
-допускается добавление книг LinkOne внутри папок по производителю (так как они хранятся на Libraries\Mincom\Polyus)
+допускается добавление книг LinkOne внутри папок по производителю (так как они хранятся на Libraries\Mincom\)
 
 Выгружает страницы в порядке следования по содержанию
 со всем текстовым контентом по порядку и ссылками, содержащимися
