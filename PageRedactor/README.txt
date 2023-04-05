@@ -6,7 +6,7 @@ set PYTHONPATH=%USERPROFILE%\Desktop\Python38-32\Lib\site-packages;%PYTHONPATH%
 cd %USERPROFILE%\Desktop\Python38-32\PageRedactor
 %USERPROFILE%\Desktop\Python38-32\python.exe -i mass_replace.py
 
-Модификация LinkOneCrush
+Модификация LinkOneCrush (WARNING: this repo do not contain folders data and components)
 
 Обрабатывает книги LinkOne помещенные в папку to_process (находится в PageRedactor),
 допускается добавление книг LinkOne внутри папок по производителю (так как они хранятся на Libraries\Mincom\Polyus)
