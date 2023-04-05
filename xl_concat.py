@@ -19,4 +19,4 @@ for n, file in enumerate(files):
     else:
         df = df.append(pd.read_excel(os.path.join(curr_path, file), header=None, dtype=str))
 
-df.to_excel(os.path.join(curr_path, 'merged_xl.xlsx'), header=False, index=False)
+df.to_excel(os.path.join(curr_path, 'concated_xl.xlsx'), header=False, index=False)
